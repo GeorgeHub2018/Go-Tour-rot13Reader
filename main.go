@@ -7,33 +7,35 @@ import (
 	"strings"
 )
 
-const (
-	input  string = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!"
-	output string = "NOPQRSTUVWXYZABCDEFGHIJKLMnopqrstuvwxyzabcdefghijklm!"
-)
-
 type rot13Reader struct {
 	r io.Reader
 }
 
-func rot13(str byte) byte {
-	index := strings.Index(input, string(str))
-	if index > -1 {
-		return byte(output[index])
+func rot13(b byte) (r byte) {
+	if b >= 'a' && b <= 'z' {
+		// Rotate lowercase letters 13 places.
+		if b >= 'm' {
+			return b - 13
+		}
+		return b + 13
+	} else if b >= 'A' && b <= 'Z' {
+		// Rotate uppercase letters 13 places.
+		if b >= 'M' {
+			return b - 13
+		}
+		return b + 13
 	}
-	return 0
+	return b
 }
 
 func (r rot13Reader) Read(b []byte) (n int, e error) {
-	rotByte := make([]byte, len(b))
-	bi, err := r.r.Read(rotByte)
-	if bi == 0 || err != nil {
+	count, err := r.r.Read(b)
+	if count == 0 || err != nil {
 		return 0, errors.New("empty read")
 	}
 
-	n = 0
-	for i := 0; i < bi; i++ {
-		b[i] = rot13(rotByte[i])
+	for i := 0; i < count; i++ {
+		b[i] = rot13(b[i])
 		n++
 	}
 	return n, nil
